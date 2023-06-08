@@ -1,4 +1,5 @@
 import openai
+import speech_recognition as sr
 import os
 
 # Get the API key from the environment variable
@@ -13,6 +14,9 @@ conversation_history = []
 # Define the initial prompt for the conversation
 initial_prompt = input("Enter the initial prompt: ")
 conversation_history.append(initial_prompt)
+
+# Initialize the speech recognizer
+recognizer = sr.Recognizer()
 
 while True:
     # Join the conversation history prompts into a single string
@@ -34,11 +38,30 @@ while True:
     # Print the generated response
     print(generated_response)
 
-    # Ask the user for the next prompt
-    next_prompt = input("Enter your next prompt (or 'q' to quit): ")
+    # Ask the user for the next prompt or listen for speech input
+    next_input = input("Enter your next prompt or type 's' to start speech recognition (or 'q' to quit): ")
 
-    if next_prompt.lower() == 'q':
+    if next_input.lower() == 'q':
         break
 
-    # Add the user's prompt to the conversation history
-    conversation_history.append(next_prompt)
+    if next_input.lower() == 's':
+        print("Listening...")
+
+        # Use speech recognition to listen for audio input
+        with sr.Microphone() as source:
+            audio = recognizer.listen(source)
+
+        try:
+            # Recognize speech from the audio input
+            speech_input = recognizer.recognize_google(audio)
+            print("Speech Input:", speech_input)
+
+            # Add the speech input to the conversation history
+            conversation_history.append(speech_input)
+        except sr.UnknownValueError:
+            print("Speech recognition could not understand audio.")
+        except sr.RequestError as e:
+            print("Could not request results from speech recognition service; {0}".format(e))
+    else:
+        # Add the user's prompt to the conversation history
+        conversation_history.append(next_input)
